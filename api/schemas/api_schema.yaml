@@ -1,0 +1,224 @@
+# TODO: Add the authenticated endpoints? How about the upload?
+# TODO: Add headers
+
+
+openapi: 3.0.0
+info:
+  title: Registration Validator API
+  description: Registration Validator API endpoint`s documentation
+  version: 1.0.0
+  contact:
+    name: QITech's support
+    email: support@qitech.work
+tags:
+  - name: Validator
+    description: Endpoints regarding data validation
+# servers:
+#   - url: https://#SELECTED_HOST#
+
+#################
+####  PATHS  ####
+#################
+paths:
+
+
+  ##### -> CLIENT INTEGRATION
+
+  /validator:
+
+    ### CREATE ###
+    post:
+      tags:
+        - Validator
+      summary: New ClientIntegration registration
+      description: "This endpoint is used for the registration of new integrations"
+      requestBody:
+        $ref: '#/components/requestBodies/Validator'
+      responses:
+        "200":
+          $ref: '#/components/responses/ValidatorSucess'
+        "400":
+          $ref: '#/components/responses/ValidatoNotSucess'
+
+  /validator/{social_security_number}:
+
+    ### GET ONE ###
+    get:
+      tags:
+        - Validator
+      summary: Retrieve paginated list of ClientIntegration
+      description: "This endpoint is used for retrieving a paginatedlist o ClientIntegration"
+      parameters:
+        - $ref: '#/components/parameters/path_social_security_number'
+      responses:
+        "200":
+          $ref: '#/components/responses/ValidatorSucess'
+
+
+
+
+
+
+######################
+####  COMPONENTS  ####
+######################
+components:
+
+  ### PARAMETERS ###
+  parameters:
+
+
+    path_social_security_number:
+      in: path
+      name: social_security_number
+      required: true
+      schema:
+        $ref: '#/components/schemas/social_security_number'
+
+
+
+
+  ### REQUEST BODIES ###
+  requestBodies:
+
+
+    Validator:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidatorRequest'
+
+
+
+
+  ### RESPONSES ###
+  responses:
+
+
+    ValidatorSucess:
+      description: "ValidRegistration - Ok"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidatorSucessResponse'
+
+    ValidatoNotSucess:
+      description: "ValidRegistration - NotOk"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidatorNotSucessResponse'
+
+
+
+
+
+
+  ### SCHEMAS ###
+  schemas:
+
+
+    ValidatorRequest:
+      type: object
+      properties:
+        first_name:
+          $ref: "#/components/schemas/first_name"
+        last_name:
+          $ref: "#/components/schemas/last_name"
+        phone:
+          $ref: "#/components/schemas/phone"
+        social_security_number:
+          $ref: "#/components/schemas/social_security_number"
+      required:
+        - first_name
+        - last_name
+        - phone
+        - social_security_number
+      additionalProperties: false
+
+    ValidatorSucessResponse:
+      type: object
+      properties:
+        first_name:
+          $ref: "#/components/schemas/first_name"
+        last_name:
+          $ref: "#/components/schemas/last_name"
+        phone:
+          $ref: "#/components/schemas/phone"
+        social_security_number:
+          $ref: "#/components/schemas/social_security_number"
+        sucess:
+          $ref: "#/components/schemas/sucess"
+      required:
+        - first_name
+        - last_name
+        - phone
+        - social_security_number
+        - sucess
+      additionalProperties: false
+
+    ValidatorNotSucessResponse:
+      type: object
+      properties:
+        sucess:
+          allOf:
+          - $ref: "#/components/schemas/sucess"
+          example: false
+        description:
+          $ref: "#/components/schemas/description"
+      required:
+        - sucess
+      additionalProperties: false
+
+
+
+
+    social_security_number:
+      description: Natural person`s document identification number (CPF)
+      type: string
+      minLength: 11
+      maxLength: 11
+      nullable: false
+      example: "98765432100"
+
+    first_name:
+      description: Natural person`s first name
+      type: string
+      minLength: 1
+      maxLength: 100
+      nullable: false
+      example: "Henrique"
+
+    last_name:
+      description: Natural person`s last name
+      type: string
+      minLength: 1
+      maxLength: 100
+      nullable: false
+      example: "Bontempo"
+
+    phone:
+      description: Natural person`s phone number
+      type: string
+      minLength: 12
+      maxLength: 13
+      nullable: false
+      example: "(11)987654321"
+
+    sucess:
+      description: Boolean that attest if the the registration data valid
+      type: boolean
+      example: true
+
+    description:
+      description: Error description
+      type: string
+      minLength: 1
+      maxLength: 200
+      nullable: false
+      example: "Some description regarding the error that happened"
+
+
+
+

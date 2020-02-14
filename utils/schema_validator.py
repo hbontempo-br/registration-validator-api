@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Dict
 from typing import TYPE_CHECKING
 
@@ -19,9 +20,9 @@ def validate_schema(
     params: Dict,
     schema_dict: Dict,
 ):
-    try:
-        jsonschema.validate(
-            req.media, schema_dict, format_checker=jsonschema.FormatChecker(),
-        )
-    except jsonschema.ValidationError as e:
-        raise BadRequest(description=e.message).http()
+
+    validator = jsonschema.Draft7Validator(schema_dict)
+    error_generator = validator.iter_errors(req.media)
+    errors = [str(error) for error in error_generator]
+    if errors:
+        raise BadRequest(description=json.dumps(errors)).http()
