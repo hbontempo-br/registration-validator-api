@@ -8,8 +8,8 @@ info:
   description: Registration Validator API endpoint`s documentation
   version: 1.0.0
   contact:
-    name: QITech's support
-    email: support@qitech.work
+    name: Henrique Bontempo
+    email: me@hbontempo.dev
 tags:
   - name: Validator
     description: Endpoints regarding data validation
