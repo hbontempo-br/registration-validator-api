@@ -2,10 +2,9 @@
 A simple CPF validator
 ***
 
-## API routes
+## API endpoints
 
-For a easier and more graphical visualisation of the provided endpoints please refer to the [file](api/schemas/api_schema.yaml) `api/schemas/api_schema.yaml` it contains a description of the provided endpoints using the OpenAPI 3.0 standard and can be visualised in a [online swagger editor](https://editor.swagger.io/). 
-
+This API's uses the OpenApi 3.0 standard for it's documentation. You can access it through a [Redocs's page](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/hbontempo-br/registration-validator-api/master/api/schemas/api_schema.yaml) or, if you prefer, directly through it's yaml [file](api/schemas/api_schema.yaml). 
 
 ## API Install Guide
 
