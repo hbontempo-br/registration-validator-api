@@ -8,7 +8,7 @@ This API's uses the OpenApi 3.0 standard for it's documentation. You can access 
 
 ## API Install Guide
 
-*This project is meant to run using **python 3.7** in an Unix-like system , other versions and SOs may not work.*
+*This project is meant to run using **python 3.7** in an Unix-like system , other versions and OSs may not work.*
 
 All dependencies are listed on requirements.txt file. Its strongly recommended to run service in a virtual environment.
 
