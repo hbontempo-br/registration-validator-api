@@ -41,7 +41,9 @@ class Registration(BaseResource):
 
         # Raise exception if not found
         if not registration:
-            raise NotFound("No Registration found fot the given social_security_number")
+            raise NotFound(
+                "No Registration found fot the given social_security_number"
+            ).http()
 
         # Generate response
         registration_dto = RegistrationDTO(db_object=registration)
