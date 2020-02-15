@@ -7,10 +7,12 @@ from typing import TYPE_CHECKING
 from api.resources.base_resource import BaseResource
 from api.schemas.api_schema import get_specification
 import falcon
-from utils.errors import InternalError
+from utils.errors import InternalError, Conflict, NotFound
 from utils.errors import request_error_handler
 from utils.schema_validator import validate_schema
 from validate_docbr import CPF
+
+from api.DTO.registrationDTO import RegistrationDTO
 
 # To avoid circular imports because of the type hinting
 if TYPE_CHECKING:
@@ -19,12 +21,28 @@ if TYPE_CHECKING:
 VALIDATOR_SCHEMA_DICT = get_specification(schema_name="ValidatorRequest")
 
 
-class Validator(BaseResource):
+class Registration(BaseResource):
     @request_error_handler
     def on_get_with_social_security_number(
         self, req: Request, res: Response, social_security_number: str = None
     ) -> NoReturn:
-        pass
+        # Mongo Collection
+        db = req.context.db_client.registration_validator
+        collection = db.registration
+
+        # Searching for Registration
+        registration = collection.find_one(
+            {"social_security_number": social_security_number}
+        )
+
+        # Raise exception if not found
+        if not registration:
+            raise NotFound("No Registration found fot the given social_security_number")
+
+        # Generate response
+        registration_dto = RegistrationDTO(db_object=registration)
+        response = registration_dto.generate_response_body()
+        self.generate_response(res=res, status_code=200, body_dict=response)
 
     @request_error_handler
     @falcon.before(action=validate_schema, schema_dict=VALIDATOR_SCHEMA_DICT)
@@ -33,6 +51,20 @@ class Validator(BaseResource):
         phone = body.get("phone")
         social_security_number = body.get("social_security_number")
 
+        # Mongo Collection
+        db = req.context.db_client.registration_validator
+        collection = db.registration
+
+        # Searching for Registration
+        registration = collection.find_one(
+            {"social_security_number": social_security_number}
+        )
+        if registration:
+            raise Conflict(
+                description=f"Registration already exists (social_security_number: {social_security_number})"
+            ).http()
+
+        # Validations
         phone_validation = self.__validate_phone(phone=phone)
         social_security_number_validation = self.__validate_social_security_number(
             social_security_number=social_security_number
@@ -41,8 +73,11 @@ class Validator(BaseResource):
         success = phone_validation and social_security_number_validation
         body["success"] = success
 
+        # Generating response
         if success:
-            self.generate_response(res=res, status_code=200, body_dict=body)
+            registration_dto = RegistrationDTO(db_object=body)
+            response = registration_dto.generate_response_body()
+            self.generate_response(res=res, status_code=200, body_dict=response)
         else:
             msg = self.__generate_error_msg(
                 phone_validation=phone_validation,
@@ -53,6 +88,9 @@ class Validator(BaseResource):
             self.generate_response(res=res, status_code=400, body_dict=response_body)
 
         # Save to database
+        db = req.context.db_client.registration_validator
+        collection = db.registration
+        collection.insert_one(body)
 
     @staticmethod
     def __validate_phone(phone: str) -> bool:

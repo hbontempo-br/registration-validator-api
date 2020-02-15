@@ -103,6 +103,23 @@ class MethodNotAllowed(BaseError):
         )
 
 
+class Conflict(BaseError):
+    def __init__(
+        self,
+        title="Conflict",
+        http_status=falcon.HTTP_409,
+        description="Resource already exists",
+        exception=None,
+    ):
+        super().__init__(
+            title=title,
+            description=description,
+            http_status=http_status,
+            exception=exception,
+            log_level=logging.INFO,
+        )
+
+
 def request_error_handler(function: Callable):
     @wraps(function)
     def decorated(*args, **kwargs):
