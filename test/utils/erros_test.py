@@ -8,6 +8,7 @@ from utils.errors import BaseError
 from utils.errors import InternalError
 from utils.errors import MethodNotAllowed
 from utils.errors import NotFound
+from utils.errors import Conflict
 from utils.errors import request_error_handler
 
 
@@ -105,6 +106,24 @@ class TestMethodNotAllowed(unittest.TestCase):
         self.description = "Description"
         self.error_type = MethodNotAllowed
         self.expected_error = falcon.HTTP_METHOD_NOT_ALLOWED
+
+    def test_http(self):
+        bad_request_error = self.error_type(
+            title=self.title, description=self.description
+        )
+        error = bad_request_error.http()
+        self.assertEqual(error.status, self.expected_error)
+        self.assertEqual(error.description, self.description)
+        self.assertEqual(error.title, self.title)
+        self.assertIsInstance(error, falcon.HTTPError)
+
+
+class TestConflict(unittest.TestCase):
+    def setUp(self):
+        self.title = "Title"
+        self.description = "Description"
+        self.error_type = Conflict
+        self.expected_error = falcon.HTTP_CONFLICT
 
     def test_http(self):
         bad_request_error = self.error_type(
