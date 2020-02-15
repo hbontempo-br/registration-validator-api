@@ -36,8 +36,15 @@ $ pip3 install -r requirements.txt
 
 This project requires this environment variables:
 
-| Variable | Definition | Example |
-| - | - | - |
+| Variable | Definition | Example | Default |
+| - | - | - | - |
+| DB_ADDRESS | The address of application MongoDB's cluster | cluster0-2ai50.gcp.mongodb.net | |
+| DB_DATABASE | Name of the database that the data is registered | - | registration_validator |
+| DB_USER | Application's MongoDB user | CoolUser | |
+| DB_PASSWORD | Application's MongoDB password | CoolPassword | |
+| GUNICORN_WORKER_TIMEOUT | Number of gunicorn workers that you want | 2 | 1 |
+| COMMIT | The commit of this you running application (for better debbuging) | ca82a6dff817ec66f44342007202690a93763949 | None |
+
 
 
 ## Running the API locally
@@ -56,8 +63,15 @@ This project has a strict formatting validation, but it's super easy to adhere t
 
 From inside the project's folder:
 
+Make sure the dependencies refereed on requirements-dev.txt are installed:
+
 ```sh
 $ pip3 install -r requirements-dev.txt
+```
+
+Install the pre-commit:
+
+```sh
 $ pre-commit install
 ```
 
@@ -78,8 +92,18 @@ Under construction
 
 ## Tests
 
+From inside the project's folder:
+
+Make sure the dependencies refereed on requirements-dev.txt are installed:
+
+```sh
+$ pip3 install -r requirements-dev.txt
 ```
-NOT IMPLEMENTED
+
+Run pytest:
+
+```sh
+$ pytest test
 ```
 
 
