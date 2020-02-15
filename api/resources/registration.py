@@ -14,6 +14,8 @@ from validate_docbr import CPF
 
 from api.DTO.registrationDTO import RegistrationDTO
 
+import logging
+
 # To avoid circular imports because of the type hinting
 if TYPE_CHECKING:
     from falcon import Request, Response
@@ -30,22 +32,30 @@ class Registration(BaseResource):
     def on_get_with_social_security_number(
         self, req: Request, res: Response, social_security_number: str = None
     ) -> NoReturn:
+
         # Mongo Collection
+        logging.debug("Selecting MongoDB collection")
         db = self.mongo_client.registration_validator
         collection = db.registration
 
         # Searching for Registration
+        logging.debug("Searching for registration")
         registration = collection.find_one(
             {"social_security_number": social_security_number}
         )
 
         # Raise exception if not found
         if not registration:
+            logging.debug(
+                f"Registration not found "
+                f"(social_security_number: {social_security_number})"
+            )
             raise NotFound(
                 "No Registration found fot the given social_security_number"
             ).http()
 
         # Generate response
+        logging.debug("Registration found, generating response")
         registration_dto = RegistrationDTO(db_object=registration)
         response = registration_dto.generate_response_body()
         self.generate_response(res=res, status_code=200, body_dict=response)
@@ -58,19 +68,26 @@ class Registration(BaseResource):
         social_security_number = body.get("social_security_number")
 
         # Mongo Collection
+        logging.debug("Selecting MongoDB collection")
         db = self.mongo_client.registration_validator
         collection = db.registration
 
         # Searching for Registration
+        logging.debug("Searching for duplicate registration")
         registration = collection.find_one(
             {"social_security_number": social_security_number}
         )
         if registration:
+            logging.debug(
+                f"Duplicate registration found "
+                f"(social_security_number: {social_security_number})"
+            )
             raise Conflict(
                 description=f"Registration already exists (social_security_number: {social_security_number})"
             ).http()
 
         # Validations
+        logging.debug("Validating sent data")
         phone_validation = self.__validate_phone(phone=phone)
         social_security_number_validation = self.__validate_social_security_number(
             social_security_number=social_security_number
@@ -81,10 +98,12 @@ class Registration(BaseResource):
 
         # Generating response
         if success:
+            logging.debug("The sent data is valid")
             registration_dto = RegistrationDTO(db_object=body)
             response = registration_dto.generate_response_body()
             self.generate_response(res=res, status_code=200, body_dict=response)
         else:
+            logging.debug("The sent data is not valid")
             msg = self.__generate_error_msg(
                 phone_validation=phone_validation,
                 social_security_number_validation=social_security_number_validation,
@@ -94,23 +113,30 @@ class Registration(BaseResource):
             self.generate_response(res=res, status_code=400, body_dict=response_body)
 
         # Save to database
+        logging.debug(f"Saving new registration on MongoDB: {str(body)}")
         collection.insert_one(body)
 
     @staticmethod
     def __validate_phone(phone: str) -> bool:
+        logging.debug("Validating phone")
         regex_pattern = "^\([1-9]{2}\)(?:[2-8]|9[1-9])[0-9]{7}$"  # noqa: W605
         match = re.fullmatch(pattern=regex_pattern, string=phone)
+        logging.debug(f"Valid phone: {match}")
         return bool(match)
 
     @staticmethod
     def __validate_social_security_number(social_security_number: str) -> bool:
+        logging.debug("Validating phone")
         cpf = CPF()
-        return cpf.validate(doc=social_security_number)
+        valid_social_security_number = cpf.validate(doc=social_security_number)
+        logging.debug(f"Valid social_security_number: {valid_social_security_number}")
+        return valid_social_security_number
 
     @staticmethod
     def __generate_error_msg(
         phone_validation: bool, social_security_number_validation: bool
     ) -> str:
+        logging.debug("Getting correct return message")
         msg_dict = {
             (False, False): "Invalid social_security_number and phone",
             (False, True): "Invalid  phone",
@@ -120,4 +146,5 @@ class Registration(BaseResource):
         return_msg = msg_dict.get(validation_tuple)
         if not return_msg:
             raise InternalError().http()
+        logging.debug(f"Return message: {return_msg}")
         return return_msg

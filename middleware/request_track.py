@@ -19,7 +19,7 @@ class RequestTrackMiddleware:
             RequestTrack.request_track_id = new_request_track_id
         else:
             RequestTrack.request_track_id = str(uuid.uuid4())
-        logging.debug("Request Track ID loaded")
+        logging.info("Request Track ID loaded")
 
     def process_response(
         self, req: Request, res: Response, resource: BaseResource, req_succeeded: bool
