@@ -4,27 +4,26 @@ from utils.logger import BaseLogger
 # configuration and invalidates this customization
 BaseLogger().config()
 
+import logging  # noqa: E402
+
 from api.adapters.sink import SinkAdapter  # noqa: E402
 from api.resources.home import Home  # noqa: E402
 from api.resources.registration import Registration  # noqa: E402
 import falcon  # noqa: E402
 from middleware.input_output import InputOutputMiddleware  # noqa: E402
 from middleware.request_track import RequestTrackMiddleware  # noqa: E402
-from middleware.mongo_middleware import MongoMiddleware  # noqa: E402
+from utils.mongo_connector import MongoDbConnector  # noqa: E402
 
 
 def create() -> falcon.API:
-    api = falcon.API(
-        middleware=[
-            RequestTrackMiddleware(),
-            InputOutputMiddleware(),
-            MongoMiddleware(),
-        ]
-    )
+    api = falcon.API(middleware=[RequestTrackMiddleware(), InputOutputMiddleware()])
+
+    mongo_connector = MongoDbConnector()
+    mongo_client = mongo_connector.connect()
 
     api.add_route(uri_template="/", resource=Home())
 
-    validator = Registration()
+    validator = Registration(mongo_client=mongo_client)
     api.add_route(uri_template="/registration", resource=validator)
     api.add_route(
         uri_template="/registration/{social_security_number}",
@@ -33,6 +32,8 @@ def create() -> falcon.API:
     )
 
     api.add_sink(SinkAdapter(), r"/")
+
+    logging.debug("Application loaded to worker. Ready to accept requests")
 
     return api
 

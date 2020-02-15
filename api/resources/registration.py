@@ -17,17 +17,21 @@ from api.DTO.registrationDTO import RegistrationDTO
 # To avoid circular imports because of the type hinting
 if TYPE_CHECKING:
     from falcon import Request, Response
+    from pymongo import MongoClient
 
 VALIDATOR_SCHEMA_DICT = get_specification(schema_name="ValidatorRequest")
 
 
 class Registration(BaseResource):
+    def __init__(self, mongo_client: MongoClient):
+        self.mongo_client = mongo_client
+
     @request_error_handler
     def on_get_with_social_security_number(
         self, req: Request, res: Response, social_security_number: str = None
     ) -> NoReturn:
         # Mongo Collection
-        db = req.context.db_client.registration_validator
+        db = self.mongo_client.registration_validator
         collection = db.registration
 
         # Searching for Registration
@@ -52,7 +56,7 @@ class Registration(BaseResource):
         social_security_number = body.get("social_security_number")
 
         # Mongo Collection
-        db = req.context.db_client.registration_validator
+        db = self.mongo_client.registration_validator
         collection = db.registration
 
         # Searching for Registration
@@ -88,8 +92,6 @@ class Registration(BaseResource):
             self.generate_response(res=res, status_code=400, body_dict=response_body)
 
         # Save to database
-        db = req.context.db_client.registration_validator
-        collection = db.registration
         collection.insert_one(body)
 
     @staticmethod

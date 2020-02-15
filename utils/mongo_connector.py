@@ -2,6 +2,8 @@ from constants import DB_ADDRESS, DB_PASSWORD, DB_USER, DB_DATABASE
 
 from pymongo import MongoClient
 
+import logging
+
 
 class DbConnector:
     def connect(self):
@@ -23,6 +25,12 @@ class MongoDbConnector(DbConnector):
 
     def connect(self) -> MongoClient:
 
+        logging.debug("Connecting to MongoDB")
         host = f"mongodb+srv://{self.user}:{self.password}@{self.address}/{self.database}?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE"
-        mongo_client = MongoClient(host=host, tz_aware=False, connect=False)
+        mongo_client = MongoClient(
+            host=host, tz_aware=False, connect=False, serverSelectionTimeoutMS=45000
+        )
+        mongo_client.server_info()
+        logging.debug("Connected to MongoDB")
+
         return mongo_client
